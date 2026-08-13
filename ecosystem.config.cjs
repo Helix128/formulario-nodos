@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "formulario-nodos",
       script: "./.venv/bin/gunicorn",
-      args: "app.main:app -k uvicorn.workers.UvicornWorker --workers 2 --bind 127.0.0.1:8104",
+      args: "--bind 0.0.0.0:8104 --workers 4 -k uvicorn.workers.UvicornWorker app.main:app",
       cwd: __dirname,
       interpreter: "none",
       env: { PYTHONUNBUFFERED: "1" },
