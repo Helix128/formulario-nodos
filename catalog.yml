@@ -1,0 +1,52 @@
+# Stable IDs preserve historical records when display names are changed.
+nodes:
+  - id: robotica_educativa
+    name: Robótica Educativa
+    level: 1
+  - id: gamedev
+    name: Gamedev
+    level: 1
+  - id: ia_aplicada
+    name: IA Aplicada
+    level: 1
+  - id: robotica_competitiva
+    name: Robótica Competitiva
+    level: 2
+  - id: inventores
+    name: Inventores
+    level: 2
+days:
+  - id: lunes
+    name: Lunes
+    short: Lun
+  - id: martes
+    name: Martes
+    short: Mar
+  - id: miercoles
+    name: Miércoles
+    short: Mié
+  - id: jueves
+    name: Jueves
+    short: Jue
+  - id: viernes
+    name: Viernes
+    short: Vie
+slots:
+  - id: h1
+    label: 8:30–9:40
+  - id: h2
+    label: 9:50–11:00
+  - id: h3
+    label: 11:10–12:20
+  - id: h4
+    label: 12:30–13:40
+  - id: h5
+    label: 13:50–15:00
+  - id: h6
+    label: 15:10–16:20
+  - id: h7
+    label: 16:30–17:40
+  - id: h8
+    label: 17:50–19:00
+  - id: h9
+    label: 19:10–20:20
