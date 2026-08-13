@@ -114,7 +114,8 @@ def create_app(settings=None, catalog=None, session_factory=None) -> FastAPI:
 
     @app.get("/admin", response_class=HTMLResponse)
     def dashboard(request: Request):
-        admin(request)
+        if not request.session.get("admin"):
+            return RedirectResponse("/admin/login", 303)
         return templates.TemplateResponse(request, "admin.html", {"catalog": catalog})
 
     @app.get("/api/admin/summary")

@@ -42,7 +42,9 @@ def test_api_validation(client, bad):
 
 
 def test_admin_auth_and_heatmap(client):
-    assert client.get("/admin").status_code == 401
+    response = client.get("/admin", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/admin/login"
     assert client.post("/admin/login", data={"password":"wrong"}).status_code == 401
     assert client.post("/admin/login", data={"password":"secreta"}).status_code == 200
     client.post("/api/responses", json=payload())
