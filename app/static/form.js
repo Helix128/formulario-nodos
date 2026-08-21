@@ -15,7 +15,6 @@ const submitBtn = document.querySelector('#submitBtn');
 
 const btnEditResponse = document.querySelector('#btnEditResponse');
 const btnDeleteResponse = document.querySelector('#btnDeleteResponse');
-const btnDownloadJson = document.querySelector('#btnDownloadJson');
 
 const deleteConfirmModal = document.querySelector('#deleteConfirmModal');
 const btnCancelDelete = document.querySelector('#btnCancelDelete');
@@ -230,21 +229,6 @@ btnConfirmDelete.onclick = async () => {
   showFormView(false);
   statusEl.textContent = 'Tu respuesta ha sido eliminada con éxito del sistema.';
   statusEl.className = 'status ok';
-};
-
-// Descargar comprobante JSON
-btnDownloadJson.onclick = () => {
-  const saved = JSON.parse(localStorage.getItem('nodo_response_data') || '{}');
-  const blob = new Blob([JSON.stringify(saved, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const sanitize = str => String(str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').toLowerCase();
-  a.href = url;
-  a.download = `${sanitize(saved.name || 'mi')}_disponibilidad_nodos.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
 };
 
 // Enviar formulario

@@ -359,10 +359,6 @@
       <button type="button" class="btn btn-primary" id="btnEditResponse">Editar mi respuesta</button>
       <button type="button" class="btn btn-danger" id="btnDeleteResponse">Borrar mi respuesta</button>
     </div>
-
-    <div class="submitted-footer-actions">
-      <button type="button" class="btn-link" id="btnDownloadJson">Descargar comprobante (JSON)</button>
-    </div>
   </div>
 </main>
 
@@ -431,7 +427,6 @@ const submitBtn = document.getElementById("submitBtn");
 
 const btnEditResponse = document.getElementById("btnEditResponse");
 const btnDeleteResponse = document.getElementById("btnDeleteResponse");
-const btnDownloadJson = document.getElementById("btnDownloadJson");
 
 const deleteConfirmModal = document.getElementById("deleteConfirmModal");
 const btnCancelDelete = document.getElementById("btnCancelDelete");
@@ -589,23 +584,6 @@ function clearForm() {
   pref1.closest('.pref-row').classList.remove('invalid');
 }
 
-function sanitize(str){
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^a-zA-Z0-9]+/g,"_").replace(/^_+|_+$/g,"").toLowerCase();
-}
-
-function downloadDataJson(data) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${sanitize(data.nombre || 'mi')}_disponibilidad.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 // Edit & Cancel
 btnEditResponse.onclick = () => {
   const saved = JSON.parse(localStorage.getItem('nodo_standalone_data') || '{}');
@@ -644,11 +622,6 @@ btnConfirmDelete.onclick = () => {
   showFormView(false);
   statusEl.textContent = 'Tu respuesta ha sido eliminada con éxito.';
   statusEl.className = 'status ok';
-};
-
-btnDownloadJson.onclick = () => {
-  const saved = JSON.parse(localStorage.getItem('nodo_standalone_data') || '{}');
-  downloadDataJson(saved);
 };
 
 // Submit
