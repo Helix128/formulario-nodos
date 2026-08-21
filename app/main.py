@@ -46,7 +46,7 @@ def create_app(settings=None, catalog=None, session_factory=None) -> FastAPI:
     async def lifespan(app):
         yield
 
-    app = FastAPI(title="Formulario NODOS", lifespan=lifespan)
+    app = FastAPI(title="Formulario NODO", lifespan=lifespan)
     app.add_middleware(SessionMiddleware, secret_key=settings.session_secret, https_only=settings.cookie_secure, same_site="lax")
     app.mount("/static", StaticFiles(directory=ROOT / "app/static"), name="static")
     templates = Jinja2Templates(directory=ROOT / "app/templates")

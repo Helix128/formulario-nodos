@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NODOS — Formulario de disponibilidad</title>
+<title>NODO — Formulario de disponibilidad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -269,7 +269,7 @@
       <line x1="20" y1="20" x2="13" y2="6" stroke="#f6c500" stroke-width="1.4"/>
       <line x1="6" y1="20" x2="20" y2="20" stroke="#f6c500" stroke-width="1.4"/>
     </svg>
-    <h1>NODOS</h1>
+    <h1>NODO</h1>
   </div>
 </header>
 
@@ -347,7 +347,7 @@
     <div class="submitted-header">
       <div class="submitted-badge">FORMULARIO ENVIADO</div>
       <h2>¡Tu disponibilidad ha sido registrada!</h2>
-      <p class="hint">Hemos guardado tu respuesta exitosamente en NODOS.</p>
+      <p class="hint">Hemos guardado tu respuesta exitosamente en NODO.</p>
     </div>
 
     <section class="card summary-card">
@@ -385,7 +385,7 @@
 </div>
 
 <script>
-const NODOS = [
+const NODO = [
   {id:"robotica_educativa", nombre:"Robótica Educativa"},
   {id:"gamedev", nombre:"Gamedev"},
   {id:"ia_aplicada", nombre:"IA Aplicada"},
@@ -440,7 +440,7 @@ const btnConfirmDelete = document.getElementById("btnConfirmDelete");
 
 function fillSelect(sel){
   sel.innerHTML = '<option value="" disabled selected>Selecciona...</option>' +
-    NODOS.map(n => `<option value="${n.nombre}">${n.nombre}</option>`).join("");
+    NODO.map(n => `<option value="${n.nombre}">${n.nombre}</option>`).join("");
 }
 fillSelect(pref1);
 fillSelect(pref2);
