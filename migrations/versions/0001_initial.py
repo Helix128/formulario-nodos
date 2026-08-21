@@ -1,4 +1,4 @@
-"""Initial NODO response schema."""
+"""Initial NODOS response schema."""
 from alembic import op
 import sqlalchemy as sa
 

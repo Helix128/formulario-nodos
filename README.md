@@ -1,4 +1,4 @@
-# Formulario NODO
+# Formulario NODOS
 
 Aplicación FastAPI para registrar disponibilidad y consultar resultados desde un panel protegido.
 

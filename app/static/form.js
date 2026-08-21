@@ -1,3 +1,9 @@
+const formView = document.querySelector('#formView');
+const submittedView = document.querySelector('#submittedView');
+const submittedSummary = document.querySelector('#submittedSummary');
+const editBanner = document.querySelector('#editBanner');
+const btnCancelEdit = document.querySelector('#btnCancelEdit');
+
 const form = document.querySelector('#nodoForm');
 const statusEl = document.querySelector('#status');
 const nameInput = document.querySelector('#name');
@@ -7,16 +13,18 @@ const pref2Select = document.querySelector('#pref2');
 const ideaInput = document.querySelector('#idea');
 const submitBtn = document.querySelector('#submitBtn');
 
-const modal = document.querySelector('#responseModal');
-const modalTitle = document.querySelector('#modalTitle');
-const modalBadge = document.querySelector('#modalBadge');
-const modalDescription = document.querySelector('#modalDescription');
-const modalSummary = document.querySelector('#modalSummary');
-const modalCloseBtn = document.querySelector('#modalCloseBtn');
 const btnEditResponse = document.querySelector('#btnEditResponse');
 const btnDeleteResponse = document.querySelector('#btnDeleteResponse');
+const btnDownloadJson = document.querySelector('#btnDownloadJson');
+
+const deleteConfirmModal = document.querySelector('#deleteConfirmModal');
+const btnCancelDelete = document.querySelector('#btnCancelDelete');
+const btnCancelDeleteClose = document.querySelector('#btnCancelDeleteClose');
+const btnConfirmDelete = document.querySelector('#btnConfirmDelete');
 
 const nodeNames = Object.fromEntries((window.NODO_CATALOG?.nodes || []).map(n => [n.id, n.name]));
+const dayMap = Object.fromEntries((window.NODO_CATALOG?.days || []).map(d => [d.id, d.short || d.name]));
+const slotMap = Object.fromEntries((window.NODO_CATALOG?.slots || []).map(s => [s.id, s.id.toUpperCase()]));
 
 const esc = x => String(x || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -44,39 +52,84 @@ function setBusySlots(slots) {
   });
 }
 
-function showModal(mode, data) {
-  if (mode === 'submitted') {
-    modalBadge.textContent = 'CONFIRMACIÓN';
-    modalTitle.textContent = '¡Disponibilidad enviada!';
-    modalDescription.textContent = 'Tu disponibilidad ha sido registrada exitosamente en el sistema.';
-  } else {
-    modalBadge.textContent = 'REGISTRO PREVIO';
-    modalTitle.textContent = 'Formulario ya enviado';
-    modalDescription.textContent = 'Ya has respondido este formulario previamente desde este navegador.';
+function formatSubmittedDate(isoString) {
+  try {
+    const d = isoString ? new Date(isoString) : new Date();
+    return d.toLocaleString('es-CL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch {
+    return 'Hoy';
   }
+}
+
+function showSubmittedView(data) {
+  if (!data) return;
 
   const p1Name = nodeNames[data.preference_1] || data.preference_1 || '—';
   const p2Name = nodeNames[data.preference_2] || data.preference_2 || '—';
-  const busyCount = data.busy_slots ? data.busy_slots.length : 0;
+  const busySlots = data.busy_slots || [];
+  const busyCount = busySlots.length;
 
-  modalSummary.innerHTML = `
+  let slotsHtml = '';
+  if (busyCount > 0) {
+    const pills = busySlots
+      .map(s => `<span class="slot-pill">${esc(dayMap[s.day_id] || s.day_id)} ${esc(slotMap[s.slot_id] || s.slot_id)}</span>`)
+      .join(' ');
+    slotsHtml = `
+      <dt>Horarios ocupados:</dt>
+      <dd>
+        <strong>${busyCount} bloque(s) con clases</strong>
+        <div class="summary-slots-list">${pills}</div>
+      </dd>
+    `;
+  } else {
+    slotsHtml = `
+      <dt>Horarios ocupados:</dt>
+      <dd><em>Ninguno marcado (disponibilidad completa)</em></dd>
+    `;
+  }
+
+  const dateFormatted = formatSubmittedDate(data.submitted_at);
+
+  submittedSummary.innerHTML = `
     <dl>
       <dt>Nombre:</dt><dd>${esc(data.name)}</dd>
-      <dt>Correo:</dt><dd>${esc(data.email)}</dd>
-      <dt>1ª Preferencia:</dt><dd>${esc(p1Name)}</dd>
-      <dt>2ª Preferencia:</dt><dd>${esc(p2Name)}</dd>
+      <dt>Correo UDD:</dt><dd>${esc(data.email)}</dd>
+      <dt>1ª Preferencia:</dt><dd><strong>${esc(p1Name)}</strong></dd>
+      <dt>2ª Preferencia:</dt><dd><strong>${esc(p2Name)}</strong></dd>
       ${data.additional_idea ? `<dt>Temática/Idea:</dt><dd>${esc(data.additional_idea)}</dd>` : ''}
-      <dt>Bloques ocupados:</dt><dd>${busyCount} bloque(s) marcados</dd>
+      ${slotsHtml}
+      <dt>Fecha de registro:</dt><dd>${esc(dateFormatted)}</dd>
     </dl>
   `;
 
-  modal.style.display = 'flex';
-  modal.setAttribute('aria-hidden', 'false');
+  formView.style.display = 'none';
+  submittedView.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function hideModal() {
-  modal.style.display = 'none';
-  modal.setAttribute('aria-hidden', 'true');
+function showFormView(isEditing = false) {
+  submittedView.style.display = 'none';
+  formView.style.display = 'block';
+
+  if (isEditing) {
+    editBanner.style.display = 'flex';
+    submitBtn.textContent = 'Guardar cambios';
+    statusEl.textContent = 'Modo de edición activo. Haz tus cambios y guarda cuando estés listo.';
+    statusEl.className = 'status ok';
+  } else {
+    editBanner.style.display = 'none';
+    submitBtn.textContent = 'Enviar mi disponibilidad';
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function populateForm(data) {
@@ -87,7 +140,6 @@ function populateForm(data) {
   pref2Select.value = data.preference_2 || '';
   ideaInput.value = data.additional_idea || '';
   setBusySlots(data.busy_slots || []);
-  submitBtn.textContent = 'Actualizar mi disponibilidad';
 }
 
 function clearForm() {
@@ -97,30 +149,65 @@ function clearForm() {
   pref2Select.value = '';
   ideaInput.value = '';
   setBusySlots([]);
-  submitBtn.textContent = 'Enviar mi disponibilidad';
   [nameInput, emailInput].forEach(x => x.parentElement.parentElement.classList.remove('invalid'));
   pref1Select.closest('.pref-row').classList.remove('invalid');
 }
 
-modalCloseBtn.onclick = hideModal;
-modal.onclick = event => {
-  if (event.target === modal) hideModal();
-};
+function openDeleteModal() {
+  deleteConfirmModal.style.display = 'flex';
+  deleteConfirmModal.setAttribute('aria-hidden', 'false');
+}
 
+function closeDeleteModal() {
+  deleteConfirmModal.style.display = 'none';
+  deleteConfirmModal.setAttribute('aria-hidden', 'true');
+}
+
+// Botón Editar respuesta
 btnEditResponse.onclick = () => {
-  hideModal();
-  statusEl.textContent = 'Puedes modificar tus datos o disponibilidad y presionar "Actualizar mi disponibilidad".';
-  statusEl.className = 'status ok';
+  const savedJson = localStorage.getItem('nodo_response_data');
+  if (savedJson) {
+    try {
+      populateForm(JSON.parse(savedJson));
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  showFormView(true);
   nameInput.focus();
 };
 
-btnDeleteResponse.onclick = async () => {
+// Botón Cancelar edición y volver al comprobante
+btnCancelEdit.onclick = () => {
+  const savedJson = localStorage.getItem('nodo_response_data');
+  if (savedJson) {
+    try {
+      showSubmittedView(JSON.parse(savedJson));
+    } catch (e) {
+      showFormView(false);
+    }
+  } else {
+    showFormView(false);
+  }
+};
+
+// Modal de confirmación para Borrar
+btnDeleteResponse.onclick = () => {
+  openDeleteModal();
+};
+
+btnCancelDelete.onclick = closeDeleteModal;
+btnCancelDeleteClose.onclick = closeDeleteModal;
+deleteConfirmModal.onclick = event => {
+  if (event.target === deleteConfirmModal) closeDeleteModal();
+};
+
+// Confirmación de borrado
+btnConfirmDelete.onclick = async () => {
   const saved = JSON.parse(localStorage.getItem('nodo_response_data') || '{}');
   const targetEmail = (saved.email || emailInput.value || '').trim();
 
-  if (!confirm('¿Estás seguro de que deseas borrar tu respuesta? Esta acción eliminará tu registro del sistema.')) {
-    return;
-  }
+  closeDeleteModal();
 
   if (targetEmail) {
     try {
@@ -130,7 +217,7 @@ btnDeleteResponse.onclick = async () => {
         body: JSON.stringify({ email: targetEmail })
       });
       if (!res.ok && res.status !== 404) {
-        alert('Hubo un problema al eliminar la respuesta del servidor. Se limpiarán los datos locales.');
+        console.warn('Error al eliminar en servidor');
       }
     } catch (err) {
       console.error('Error al eliminar en servidor:', err);
@@ -140,11 +227,27 @@ btnDeleteResponse.onclick = async () => {
   localStorage.removeItem('nodo_response_data');
   localStorage.removeItem('nodo_response_submitted');
   clearForm();
-  hideModal();
-  statusEl.textContent = 'Tu respuesta ha sido eliminada con éxito.';
+  showFormView(false);
+  statusEl.textContent = 'Tu respuesta ha sido eliminada con éxito del sistema.';
   statusEl.className = 'status ok';
 };
 
+// Descargar comprobante JSON
+btnDownloadJson.onclick = () => {
+  const saved = JSON.parse(localStorage.getItem('nodo_response_data') || '{}');
+  const blob = new Blob([JSON.stringify(saved, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const sanitize = str => String(str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').toLowerCase();
+  a.href = url;
+  a.download = `${sanitize(saved.name || 'mi')}_disponibilidad_nodos.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
+
+// Enviar formulario
 form.onsubmit = async event => {
   event.preventDefault();
   const name = nameInput.value.trim();
@@ -181,36 +284,43 @@ form.onsubmit = async event => {
 
   async function send(replace_existing = false) {
     try {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+
       const res = await fetch('/api/responses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...payload, replace_existing })
       });
 
+      submitBtn.disabled = false;
+
       if (res.status === 409) {
         if (confirm('Ya existe una respuesta registrada con este correo. ¿Deseas reemplazarla?')) {
           return send(true);
         }
+        submitBtn.textContent = editBanner.style.display === 'flex' ? 'Guardar cambios' : 'Enviar mi disponibilidad';
         statusEl.textContent = 'No se modificó tu respuesta anterior.';
         statusEl.className = 'status err';
         return;
       }
 
       if (!res.ok) {
+        submitBtn.textContent = editBanner.style.display === 'flex' ? 'Guardar cambios' : 'Enviar mi disponibilidad';
         statusEl.textContent = 'No pudimos guardar tu respuesta. Intenta nuevamente.';
         statusEl.className = 'status err';
         return;
       }
 
-      localStorage.setItem('nodo_response_data', JSON.stringify({ ...payload, submitted_at: new Date().toISOString() }));
+      const fullData = { ...payload, submitted_at: new Date().toISOString() };
+      localStorage.setItem('nodo_response_data', JSON.stringify(fullData));
       localStorage.setItem('nodo_response_submitted', '1');
-      submitBtn.textContent = 'Actualizar mi disponibilidad';
-      statusEl.textContent = 'Disponibilidad guardada ✓';
-      statusEl.className = 'status ok';
 
-      showModal('submitted', payload);
+      showSubmittedView(fullData);
     } catch (err) {
       console.error(err);
+      submitBtn.disabled = false;
+      submitBtn.textContent = editBanner.style.display === 'flex' ? 'Guardar cambios' : 'Enviar mi disponibilidad';
       statusEl.textContent = 'Error de conexión. Intenta nuevamente.';
       statusEl.className = 'status err';
     }
@@ -227,11 +337,14 @@ form.onsubmit = async event => {
     try {
       const savedData = JSON.parse(savedJson);
       populateForm(savedData);
-      showModal('already_submitted', savedData);
-      statusEl.textContent = 'Este navegador ya envió una respuesta; puedes actualizarla o borrarla.';
+      showSubmittedView(savedData);
     } catch (err) {
       console.error('Error al cargar datos guardados:', err);
+      showFormView(false);
     }
+  } else {
+    showFormView(false);
   }
 })();
+
 

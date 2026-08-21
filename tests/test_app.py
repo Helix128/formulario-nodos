@@ -41,19 +41,6 @@ def test_api_validation(client, bad):
     assert client.post("/api/responses", json=bad).status_code == 422
 
 
-<<<<<<< HEAD
-def test_admin_auth_and_heatmap(client):
-    response = client.get("/admin", follow_redirects=False)
-    assert response.status_code == 303
-    assert response.headers["location"] == "/admin/login"
-    assert client.post("/admin/login", data={"password":"wrong"}).status_code == 401
-    assert client.post("/admin/login", data={"password":"secreta"}).status_code == 200
-    client.post("/api/responses", json=payload())
-    data = client.get("/api/admin/heatmap?metric=occupancy").json()
-    assert data["total"] == 1
-    assert next(c for c in data["cells"] if c["day_id"] == "lunes" and c["slot_id"] == "h1")["percent"] == 100
-    assert client.post("/admin/logout").status_code == 200
-=======
 def test_delete_response(client):
     # Submit initial response
     assert client.post("/api/responses", json=payload()).status_code == 200
@@ -125,7 +112,6 @@ def test_admin_auth_and_logout_flow(client):
 
 
 def test_admin_api_requires_auth(client):
->>>>>>> 9cda9ea (cambios de formulario)
     assert client.get("/api/admin/summary").status_code == 401
     assert client.get("/api/admin/heatmap").status_code == 401
     assert client.get("/api/admin/responses").status_code == 401
@@ -134,4 +120,31 @@ def test_admin_api_requires_auth(client):
     assert client.get("/api/admin/summary").status_code == 200
     assert client.get("/api/admin/heatmap").status_code == 200
     assert client.get("/api/admin/responses").status_code == 200
+
+
+def test_admin_auth_and_heatmap(client):
+    response = client.get("/admin", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/admin/login"
+    assert client.post("/admin/login", data={"password":"wrong"}).status_code == 401
+    assert client.post("/admin/login", data={"password":"secreta"}).status_code == 200
+    client.post("/api/responses", json=payload())
+    data = client.get("/api/admin/heatmap?metric=occupancy").json()
+    assert data["total"] == 1
+    assert next(c for c in data["cells"] if c["day_id"] == "lunes" and c["slot_id"] == "h1")["percent"] == 100
+    assert client.post("/admin/logout").status_code == 200
+
+
+def test_form_html_contains_view_containers(client):
+    response = client.get("/")
+    assert response.status_code == 200
+    assert 'id="formView"' in response.text
+    assert 'id="submittedView"' in response.text
+    assert 'id="deleteConfirmModal"' in response.text
+    assert 'id="btnEditResponse"' in response.text
+    assert 'id="btnDeleteResponse"' in response.text
+    assert 'id="btnConfirmDelete"' in response.text
+
+
+
 

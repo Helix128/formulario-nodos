@@ -1,107 +1,141 @@
 {% extends 'base.html' %}
-{% block title %}NODO — Formulario{% endblock %}
+{% block title %}NODOS — Formulario{% endblock %}
 {% block content %}
 <main class="form-main">
-  <form id="nodoForm" novalidate>
-    <section class="card">
-      <h2><span class="num">01</span> Tus datos</h2>
-      <label>Nombre completo
-        <input id="name" required>
-      </label>
-      <p class="error-msg">Ingresa tu nombre completo.</p>
-      <label>Correo UDD
-        <input id="email" type="email" placeholder="nombre.apellido@udd.cl" required>
-      </label>
-      <p class="error-msg">Usa tu correo institucional @udd.cl</p>
-    </section>
+  <!-- Vista del Formulario (Creación / Edición) -->
+  <div id="formView">
+    <div id="editBanner" class="edit-banner" style="display: none;">
+      <div>
+        <span class="edit-pill">MODO EDICIÓN</span>
+        <p class="edit-banner-desc">Modifica tus datos o disponibilidad y presiona <strong>Guardar cambios</strong>.</p>
+      </div>
+      <button type="button" class="btn btn-sm btn-secondary" id="btnCancelEdit">← Volver al comprobante</button>
+    </div>
 
-    <section class="card">
-      <h2><span class="num">02</span> Elige tus Nodos</h2>
-      <p class="hint">Marca tu 1ª y 2ª preferencia (no pueden repetirse).</p>
-      <div class="pref-row">
-        <div>
-          <label>1ª preferencia
-            <select id="pref1">
-              <option value="">Selecciona...</option>
-              {% for n in catalog.nodes %}
-              <option value="{{n.id}}">{{n.name}}</option>
-              {% endfor %}
-            </select>
-          </label>
+    <form id="nodoForm" novalidate>
+      <section class="card">
+        <h2><span class="num">01</span> Tus datos</h2>
+        <label>Nombre completo
+          <input id="name" required>
+        </label>
+        <p class="error-msg">Ingresa tu nombre completo.</p>
+        <label>Correo UDD
+          <input id="email" type="email" placeholder="nombre.apellido@udd.cl" required>
+        </label>
+        <p class="error-msg">Usa tu correo institucional @udd.cl</p>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">02</span> Elige tus Nodos</h2>
+        <p class="hint">Marca tu 1ª y 2ª preferencia (no pueden repetirse).</p>
+        <div class="pref-row">
+          <div>
+            <label>1ª preferencia
+              <select id="pref1">
+                <option value="">Selecciona...</option>
+                {% for n in catalog.nodes %}
+                <option value="{{n.id}}">{{n.name}}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+          <div>
+            <label>2ª preferencia
+              <select id="pref2">
+                <option value="">Selecciona...</option>
+                {% for n in catalog.nodes %}
+                <option value="{{n.id}}">{{n.name}}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+          <p class="error-msg">Elige dos Nodos distintos.</p>
         </div>
-        <div>
-          <label>2ª preferencia
-            <select id="pref2">
-              <option value="">Selecciona...</option>
-              {% for n in catalog.nodes %}
-              <option value="{{n.id}}">{{n.name}}</option>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">03</span> ¿De qué temática te interesaría participar en algún taller?</h2>
+        <label>Cuéntanos qué temáticas o talleres te gustaría ver (opcional)
+          <textarea id="idea"></textarea>
+        </label>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">04</span> Marca tus horarios ocupados</h2>
+        <p class="hint">Toca cada casillero donde ya tienes clases.</p>
+        <div class="matrix-wrap">
+          <table id="matrix">
+            <thead>
+              <tr>
+                <th></th>
+                {% for d in catalog.days %}
+                <th>{{d.short}}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in catalog.slots %}
+              <tr>
+                <th class="hcode">{{s.id|upper}}<span class="htime">{{s.label}}</span></th>
+                {% for d in catalog.days %}
+                <td>
+                  <button class="cell" data-day="{{d.id}}" data-slot="{{s.id}}" type="button" aria-pressed="false" aria-label="{{d.name}} {{s.label}}"></button>
+                </td>
+                {% endfor %}
+              </tr>
               {% endfor %}
-            </select>
-          </label>
+            </tbody>
+          </table>
         </div>
-        <p class="error-msg">Elige dos Nodos distintos.</p>
-      </div>
+        <div class="matrix-legend">
+          <span><i class="swatch"></i> Libre</span>
+          <span><i class="swatch busy"></i> Ocupado</span>
+        </div>
+      </section>
+
+      <button id="submitBtn" class="submit">Enviar mi disponibilidad</button>
+      <p id="status" class="status"></p>
+    </form>
+  </div>
+
+  <!-- Vista de Formulario Enviado (Pantalla completa / comprobante) -->
+  <div id="submittedView" class="submitted-view" style="display: none;">
+    <div class="submitted-header">
+      <div class="submitted-badge">FORMULARIO ENVIADO</div>
+      <h2>¡Tu disponibilidad ha sido registrada!</h2>
+      <p class="hint">Hemos guardado tu respuesta exitosamente en el sistema NODOS.</p>
+    </div>
+
+    <section class="card summary-card">
+      <h2>Resumen de tu respuesta</h2>
+      <div class="summary-content" id="submittedSummary"></div>
     </section>
 
-    <section class="card">
-      <h2><span class="num">03</span> ¿De qué temática te interesaría participar en algún taller?</h2>
-      <label>Cuéntanos qué temáticas o talleres te gustaría ver (opcional)
-        <textarea id="idea"></textarea>
-      </label>
-    </section>
+    <div class="submitted-actions">
+      <button type="button" class="btn btn-primary" id="btnEditResponse">Editar mi respuesta</button>
+      <button type="button" class="btn btn-danger" id="btnDeleteResponse">Borrar mi respuesta</button>
+    </div>
 
-    <section class="card">
-      <h2><span class="num">04</span> Marca tus horarios ocupados</h2>
-      <p class="hint">Toca cada casillero donde ya tienes clases.</p>
-      <div class="matrix-wrap">
-        <table id="matrix">
-          <thead>
-            <tr>
-              <th></th>
-              {% for d in catalog.days %}
-              <th>{{d.short}}</th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for s in catalog.slots %}
-            <tr>
-              <th class="hcode">{{s.id|upper}}<span class="htime">{{s.label}}</span></th>
-              {% for d in catalog.days %}
-              <td>
-                <button class="cell" data-day="{{d.id}}" data-slot="{{s.id}}" type="button" aria-pressed="false" aria-label="{{d.name}} {{s.label}}"></button>
-              </td>
-              {% endfor %}
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      <div class="matrix-legend">
-        <span><i class="swatch"></i> Libre</span>
-        <span><i class="swatch busy"></i> Ocupado</span>
-      </div>
-    </section>
-
-    <button id="submitBtn" class="submit">Enviar mi disponibilidad</button>
-    <p id="status" class="status"></p>
-  </form>
+    <div class="submitted-footer-actions">
+      <button type="button" class="btn-link" id="btnDownloadJson">Descargar comprobante (JSON)</button>
+    </div>
+  </div>
 </main>
 
-<div id="responseModal" class="modal-backdrop" aria-hidden="true" style="display: none;">
-  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+<!-- Modal de Confirmación para Borrado -->
+<div id="deleteConfirmModal" class="modal-backdrop" aria-hidden="true" style="display: none;">
+  <div class="modal-card modal-confirm" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
     <div class="modal-header">
-      <span class="modal-badge" id="modalBadge">REGISTRO</span>
-      <button type="button" class="modal-close" id="modalCloseBtn" aria-label="Cerrar">&times;</button>
+      <span class="modal-badge modal-badge-danger">ATENCIÓN</span>
+      <button type="button" class="modal-close" id="btnCancelDeleteClose" aria-label="Cerrar">&times;</button>
     </div>
-    <h2 id="modalTitle">Formulario ya enviado</h2>
-    <p id="modalDescription" class="hint">Ya has registrado tu disponibilidad en el sistema.</p>
-    
-    <div class="modal-summary" id="modalSummary"></div>
-    
+    <h2 id="deleteModalTitle">¿Estás seguro?</h2>
+    <p class="hint modal-alert-text">
+      ¿Estás seguro de que deseas borrar tu respuesta? Esta acción eliminará tu registro permanentemente del sistema NODOS.
+    </p>
     <div class="modal-actions">
-      <button type="button" class="btn btn-primary" id="btnEditResponse">✏️ Editar respuesta</button>
-      <button type="button" class="btn btn-danger" id="btnDeleteResponse">🗑️ Borrar respuesta</button>
+      <button type="button" class="btn btn-secondary" id="btnCancelDelete">Cancelar</button>
+      <button type="button" class="btn btn-danger-solid" id="btnConfirmDelete">Sí, borrar respuesta</button>
     </div>
   </div>
 </div>
