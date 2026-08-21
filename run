@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -e
+
+# Directorio raíz del proyecto
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_ROOT"
+
+# Configuración por defecto para debug (sobreescribible por variables de entorno)
+HOST="${HOST:-127.0.0.1}"
+PORT="${PORT:-8000}"
+LOG_LEVEL="${LOG_LEVEL:-debug}"
+
+echo "=========================================="
+echo "🚀 Iniciando Formulario NODO en modo DEBUG"
+echo "=========================================="
+
+# 1. Verificar y activar entorno virtual
+if [ -d ".venv" ]; then
+    echo "📦 Activando entorno virtual (.venv)..."
+    source .venv/bin/activate
+elif [ -n "$VIRTUAL_ENV" ]; then
+    echo "📦 Usando entorno virtual activo: $VIRTUAL_ENV"
+else
+    echo "⚠️  Aviso: No se encontró la carpeta .venv. Se usará el entorno Python actual."
+fi
+
+# 2. Verificar archivo .env
+if [ ! -f ".env" ]; then
+    if [ -f ".env.example" ]; then
+        echo "⚠️  No se encontró el archivo .env."
+        echo "   Creando .env a partir de .env.example..."
+        cp .env.example .env
+        echo "   ⚠️  Asegúrese de configurar ADMIN_PASSWORD_HASH y SESSION_SECRET en .env."
+    else
+        echo "❌ Error: No se encontró el archivo .env ni .env.example."
+        exit 1
+    fi
+fi
+
+# 3. Exportar variables para debug
+export PYTHONUNBUFFERED=1
+export PYTHONDONTWRITEBYTECODE=1
+
+# 4. Verificar dependencias mínimas (uvicorn)
+if ! command -v uvicorn &> /dev/null; then
+    echo "❌ Error: 'uvicorn' no está instalado o no se encuentra en el PATH."
+    echo "   Por favor instale las dependencias con: pip install -r requirements.txt"
+    exit 1
+fi
+
+# 5. Aplicar migraciones si alembic está disponible
+if command -v alembic &> /dev/null; then
+    echo "🔄 Verificando/aplicando migraciones de base de datos..."
+    alembic upgrade head || {
+        echo "⚠️  Advertencia: Hubo un problema al ejecutar las migraciones de Alembic."
+    }
+fi
+
+echo "------------------------------------------"
+echo "🌐 URL Principal: http://${HOST}:${PORT}"
+echo "📄 Documentación: http://${HOST}:${PORT}/docs"
+echo "📊 Panel Admin:   http://${HOST}:${PORT}/admin"
+echo "🔄 Auto-reload:   Activado (--reload)"
+echo "🔍 Log Level:     ${LOG_LEVEL}"
+echo "------------------------------------------"
+echo "Presione Ctrl+C para detener el servidor."
+echo ""
+
+# Ejecutar uvicorn con recarga en caliente y logs detallados
+exec uvicorn app.main:app \
+    --host "$HOST" \
+    --port "$PORT" \
+    --reload \
+    --log-level "$LOG_LEVEL" \
+    "$@"

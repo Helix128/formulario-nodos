@@ -45,6 +45,6 @@ def load_catalog(path: Path) -> dict:
         ids = [item["id"] for item in values]
         if len(ids) != len(set(ids)):
             raise RuntimeError(f"Catálogo inválido: IDs duplicados en {kind}.")
-    if any(not item.get("name") or "level" not in item for item in catalog["nodes"]):
-        raise RuntimeError("Catálogo inválido: cada nodo requiere name y level.")
+    if any(not item.get("name") for item in catalog["nodes"]):
+        raise RuntimeError("Catálogo inválido: cada nodo requiere name.")
     return catalog

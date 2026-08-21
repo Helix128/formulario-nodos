@@ -30,6 +30,10 @@ class Submission(BaseModel):
     replace_existing: bool = False
 
 
+class DeleteSubmission(BaseModel):
+    email: str = Field(max_length=320)
+
+
 def create_app(settings=None, catalog=None, session_factory=None) -> FastAPI:
     settings = settings or load_settings()
     catalog = catalog or load_catalog(settings.catalog_path)
@@ -88,6 +92,18 @@ def create_app(settings=None, catalog=None, session_factory=None) -> FastAPI:
                 for day in day_ids for slot in slot_ids
             ]
         return {"ok": True, "replaced": replaced}
+
+    @app.delete("/api/responses")
+    def delete_response(payload: DeleteSubmission):
+        email = payload.email.strip().lower()
+        if not EMAIL.fullmatch(email):
+            raise HTTPException(422, "Correo institucional inválido.")
+        with session_factory.begin() as db:
+            response = db.scalar(select(Response).where(Response.email == email))
+            if not response:
+                raise HTTPException(404, "No se encontró una respuesta para este correo.")
+            db.delete(response)
+        return {"ok": True, "deleted": True}
 
     @app.get("/admin/login", response_class=HTMLResponse)
     def login_page(request: Request):

@@ -211,7 +211,7 @@
 
 <header class="topbar">
   <div class="brand">
-    <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+    <svg width="38" height="38" viewBox="0 0 26 26" fill="none">
       <circle cx="6" cy="20" r="3" fill="#f6c500"/>
       <circle cx="20" cy="20" r="3" fill="#f6c500"/>
       <circle cx="13" cy="6" r="3" fill="#f6c500"/>
@@ -221,7 +221,6 @@
     </svg>
     <h1>NODO</h1>
   </div>
-  <p class="tag">// formulario de disponibilidad — no es una inscripción definitiva</p>
 </header>
 
 <main>
@@ -254,9 +253,9 @@
     </section>
 
     <section class="card">
-      <h2><span class="num">03</span> ¿Se te ocurre otro Nodo?</h2>
-      <label for="ideaExtra">Cuéntanos tu idea (opcional)</label>
-      <textarea id="ideaExtra" placeholder="Ej: un Nodo de audio/producción musical..."></textarea>
+      <h2><span class="num">03</span> ¿De qué temática te interesaría participar en algún taller?</h2>
+      <label for="ideaExtra">Cuéntanos qué temáticas o talleres te gustaría ver (opcional)</label>
+      <textarea id="ideaExtra" placeholder="Ej: desarrollo de videojuegos, producción musical, inteligencia artificial aplicada..."></textarea>
     </section>
 
     <section class="card">
@@ -286,11 +285,11 @@
 
 <script>
 const NODOS = [
-  {nombre:"Robótica Educativa", nivel:1},
-  {nombre:"Gamedev", nivel:1},
-  {nombre:"IA Aplicada", nivel:1},
-  {nombre:"Robótica Competitiva", nivel:2},
-  {nombre:"Inventores", nivel:2},
+  {nombre:"Robótica Educativa"},
+  {nombre:"Gamedev"},
+  {nombre:"IA Aplicada"},
+  {nombre:"Robótica Competitiva"},
+  {nombre:"Inventores"},
 ];
 
 const HORAS = [
@@ -313,7 +312,7 @@ const pref2 = document.getElementById("pref2");
 
 function fillSelect(sel){
   sel.innerHTML = '<option value="" disabled selected>Selecciona...</option>' +
-    NODOS.map(n => `<option value="${n.nombre}">${n.nombre} (Nivel ${n.nivel})</option>`).join("");
+    NODOS.map(n => `<option value="${n.nombre}">${n.nombre}</option>`).join("");
 }
 fillSelect(pref1);
 fillSelect(pref2);

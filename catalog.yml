@@ -2,19 +2,10 @@
 nodes:
   - id: robotica_educativa
     name: Robótica Educativa
-    level: 1
-  - id: gamedev
-    name: Gamedev
-    level: 1
-  - id: ia_aplicada
-    name: IA Aplicada
-    level: 1
   - id: robotica_competitiva
     name: Robótica Competitiva
-    level: 2
   - id: inventores
     name: Inventores
-    level: 2
 days:
   - id: lunes
     name: Lunes
